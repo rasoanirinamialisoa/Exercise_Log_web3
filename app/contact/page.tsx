@@ -1,5 +1,4 @@
-import { SubmitHandler } from 'react-hook-form';
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { z, ZodType } from 'zod';
 
 const schema: ZodType<{
@@ -28,21 +27,46 @@ export default function ContactPage() {
       email: '',
       numeroTelephone: '',
       message: '',
-    }
+    },
+    resolver:
+      async (data) => {
+        try {
+          const validatedData = await schema.parse(data);
+          return {
+            values: validatedData,
+            errors: {}
+          };
+        } catch (error) {
+          if (error !== null && typeof error === 'object' && 'formErrors' in error) {
+      
+            const errorWithFormErrors = error as { formErrors: any };
+
+            return {
+              values: {},
+              errors: errorWithFormErrors.formErrors
+            };
+          } else {
+
+            const errorMessage: string = error as string;
+            console.error(errorMessage); 
+            return {
+              values: {},
+              errors: {} 
+            };
+          }
+        }
+      }
   });
 
-  const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    try {
-      const validatedData = await schema.parse(data);
-      console.log('Données soumises :', validatedData);
-    } catch (error) {
-      console.error(error);
-    }
+  const onSubmit: SubmitHandler<FormValues> = (data) => {
+
+    console.log('Données soumises :', data);
   };
 
   return (
     <div>
       <h1>Formulaire de contact</h1>
+
       <form onSubmit={handleSubmit(onSubmit)}>
         <div>
           <label>Nom :</label>
